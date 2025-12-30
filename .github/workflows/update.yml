@@ -1,4 +1,4 @@
-name: Update All Rules
+name: Update Proxy Rules Only
 
 on:
   schedule:
@@ -26,19 +26,19 @@ jobs:
       run: |
         pip install requests pytz
         
-    # 1. 运行直连脚本 (hydirect.list)
-    - name: Build Direct List
-      run: python main.py
+    # ❌ 已删除运行 main.py 的步骤
       
-    # 2. 运行代理脚本 (hyproxy.list + hyhk.list)
-    - name: Build Proxy & HK Lists
+    # ✅ 只运行代理脚本
+    - name: Build Proxy Lists
       run: python main_proxy.py
       
     - name: Commit and push
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        # 强制添加这三个文件
-        git add hydirect.list hyproxy.list hyhk.list
-        git commit -m "Auto-update all rules" || exit 0
+        # 只提交 main_proxy.py 生成的那两个文件
+        git add hyproxy.list hyhk.list
+        # 如果有 hydirect.list 残留，也可以顺手删了(可选)
+        # git rm hydirect.list || true 
+        git commit -m "Auto-update proxy rules" || exit 0
         git push -f origin main
