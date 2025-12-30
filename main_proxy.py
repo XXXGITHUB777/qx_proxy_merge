@@ -6,11 +6,7 @@ import time
 
 # ================= 配置区域 =================
 
-# -------------------------------------------------
 # 1. 通用代理列表 (hyproxy.list)
-# 剔除了：Google, TG, YouTube, Netflix, Disney, Spotify, 新闻, 社交
-# 保留了：GitHub, Wiki, Reddit, Pinterest, Tumblr, AI
-# -------------------------------------------------
 PROXY_MAP = {
     'GitHub': 'GitHub',
     'Wikipedia': 'Wikipedia',
@@ -19,21 +15,18 @@ PROXY_MAP = {
     'Tumblr': 'Tumblr',
     'Claude': 'Claude',
     'Gemini': 'Gemini',
-    'Civitai': 'Civitai',      # AI绘画模型站，通常需要
+    'Civitai': 'Civitai',
     'HuggingFace': 'HuggingFace'
 }
 
-# -------------------------------------------------
 # 2. H站/成人列表 (hyhk.list) -> 建议走 🇭🇰
-# 包含 BM7 的规则 + 手动精选域名
-# -------------------------------------------------
 HK_MAP = {
     'Pornhub': 'Pornhub',
     'DMM': 'DMM',
-    'Pixiv': 'Pixiv',          # P站，通常归类到二次元/H
+    'Pixiv': 'Pixiv',
 }
 
-# 手动补充的 H 站域名 (纯净版，无广告域名)
+# 手动补充的 H 站域名 (无广告纯净版)
 HK_MANUAL_DOMAINS = [
     # === 核心 AV 站 ===
     "xvideos.com", "xvideos-cdn.com",
@@ -41,7 +34,7 @@ HK_MANUAL_DOMAINS = [
     "jable.tv",               
     "missav.com", "missav.live", "missav.ws", "missav.ai",
     "91porn.com", "91porny.com", "91porna.com", "91short.com",
-    "t66y.com",               # 1024
+    "t66y.com",               
     "avple.tv",
     "supjav.com",
     "njav.tv", "njav.com",
@@ -58,14 +51,14 @@ HK_MANUAL_DOMAINS = [
     "redtube.com",
     "tube8.com",
     "eporner.com",
-    "txh066.com", "txh067.com", # 糖心
-    "h5ajcc.com",             # 爱酱
-    "4hu.tv",                 # 四虎
-    "sezse.com",              # 色中色
+    "txh066.com", "txh067.com",
+    "h5ajcc.com",             
+    "4hu.tv",                 
+    "sezse.com",              
     "52av.one",
 
     # === 漫画/本子 ===
-    "18comic.org", "18comic.vip", "jmcomic.mic", # 禁漫
+    "18comic.org", "18comic.vip", "jmcomic.mic",
     "wnacg.com", "wnacg.org",
     "e-hentai.org", "exhentai.org", "ehgt.org",
     "nhentai.net",
@@ -94,7 +87,7 @@ BASE_URL = "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule
 
 def download_single_rule(item):
     """下载单个 BM7 规则"""
-    rule_name = item[1] # item is (Remark, RuleName)
+    rule_name = item[1]
     url = BASE_URL.format(name=rule_name)
     headers = {'User-Agent': 'Quantumult%20X/1.0.30'}
     
@@ -107,7 +100,7 @@ def download_single_rule(item):
         return (rule_name, None)
 
 def process_rules(raw_text, strategy_name="proxy"):
-    """清洗规则：只留域名，剔除 IP"""
+    """清洗规则：只留域名"""
     processed_rules = []
     lines = raw_text.splitlines()
     for line in lines:
@@ -121,10 +114,7 @@ def process_rules(raw_text, strategy_name="proxy"):
         rule_type = parts[0].upper()
         target = parts[1]
         
-        # 只保留域名
         if rule_type in ["HOST", "HOST-SUFFIX", "HOST-KEYWORD", "USER-AGENT"]:
-            # strategy_name 这里只是个占位符，实际 QX 里由 tag 决定
-            # 但为了格式完整，我们填入 proxy
             final_rule = f"{rule_type}, {target}, {strategy_name}" 
             fingerprint = f"{rule_type},{target}".lower()
             processed_rules.append((fingerprint, final_rule))
@@ -169,8 +159,9 @@ def build_list(target_map, manual_domains, filename, title, strategy="proxy"):
         print(f"   ⚠️ 警告：{filename} 为空，跳过写入")
         return
 
+    # === 修复点：将时间获取逻辑移到这里 ===
     tz = pytz.timezone('Asia/Shanghai')
-    现在 = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+    now = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
     
     header = [
         f"# {filename} ({title})",
